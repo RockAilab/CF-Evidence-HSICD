@@ -5,8 +5,8 @@ This repository contains the inference code, benchmark data, and evidence requir
 ## Installation
 
 ```bash
-git clone https://github.com/RockAilab/Label-Free-Counterfactual-Evidence-Inference-with-Anchor-Induced-Sparse-Correction-for-HSI-CD.git
-cd Label-Free-Counterfactual-Evidence-Inference-with-Anchor-Induced-Sparse-Correction-for-HSI-CD
+git clone https://github.com/RockAilab/CF-Evidence-HSICD.git
+cd CF-Evidence-HSICD
 python -m pip install -r requirements.txt
 ```
 
