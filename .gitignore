@@ -8,14 +8,11 @@ dist/
 build/
 *.egg-info/
 
-# Keep datasets, learned maps, checkpoints, and generated outputs out of Git.
-data/
+# Keep generated outputs and model artifacts out of Git.
 results/
 outputs/
 artifacts/
 checkpoints/
-*.mat
-*.npy
 *.npz
 *.pt
 *.pth

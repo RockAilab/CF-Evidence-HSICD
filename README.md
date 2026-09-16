@@ -1,76 +1,47 @@
 # Label-Free Counterfactual Evidence Inference with Anchor-Induced Sparse Correction for Hyperspectral Change Detection
 
-Inference code for the retained-evidence sparse-correction model described in
-the paper.
+This repository contains the inference code, benchmark data, and evidence required to reproduce the change maps for Farmland, Hermiston, and River.
 
 ## Installation
 
 ```bash
 git clone https://github.com/RockAilab/Label-Free-Counterfactual-Evidence-Inference-with-Anchor-Induced-Sparse-Correction-for-HSI-CD.git
 cd Label-Free-Counterfactual-Evidence-Inference-with-Anchor-Induced-Sparse-Correction-for-HSI-CD
-python -m pip install -e .
+python -m pip install -r requirements.txt
 ```
-
-## Prepare Inputs
-
-Prepare the following two-dimensional NumPy arrays with the same spatial shape:
-
-- base evidence: `base.npy`
-- boundary-spectral evidence: `boundary.npy`
-- learned correction probability: `correction_probability.npy`
-
-You also need the scene prior and correction count produced by the upstream
-pipeline. If a ranked alpha map is already available, it can be used instead of
-the correction probability and correction count.
 
 ## Run Inference
 
-### Using correction probability
+The datasets and inference evidence are included in `data/` and `evidence/`. Run all three scenes with:
 
 ```bash
-export SCENE_PRIOR=...
-export CORRECTION_COUNT=...
-
-hsi-cd-infer \
-  --base-evidence /path/to/base.npy \
-  --boundary-evidence /path/to/boundary.npy \
-  --correction-probability /path/to/correction_probability.npy \
-  --correction-count "$CORRECTION_COUNT" \
-  --prior "$SCENE_PRIOR" \
-  --output-dir outputs/example
+python run_all.py
 ```
 
-### Using a ranked alpha map
+Results are written to:
 
-```bash
-export SCENE_PRIOR=...
-
-hsi-cd-infer \
-  --base-evidence /path/to/base.npy \
-  --boundary-evidence /path/to/boundary.npy \
-  --alpha-map /path/to/ranked_alpha.npy \
-  --prior "$SCENE_PRIOR" \
-  --output-dir outputs/example
+```text
+outputs/farmland/
+outputs/hermiston/
+outputs/river/
 ```
 
-The repository-level entry point provides the same interface:
+Each directory contains the binary change map (`prediction.npy`), fused score, fusion map, correction mask, and inference metadata.
+
+To run a single scene through the command-line interface:
 
 ```bash
-python infer.py --help
+python infer.py \
+  --base-evidence evidence/river/base.npy \
+  --boundary-evidence evidence/river/boundary.npy \
+  --correction-probability evidence/river/correction_probability.npy \
+  --correction-count 1615 \
+  --prior 0.09206509952232868 \
+  --output-dir outputs/river
 ```
 
-## Outputs
-
-Inference writes the following files to `--output-dir`:
-
-- `prediction.npy`: binary change map
-- `fused_score.npy`: fused evidence score
-- `alpha.npy`: sparse fusion alpha map
-- `correction_mask.npy`: selected correction support
-- `metadata.json`: inference metadata
-
-## Verify Installation
+## Test
 
 ```bash
-python -m unittest discover -s tests -v
+PYTHONPATH=src python -m unittest discover -s tests -v
 ```

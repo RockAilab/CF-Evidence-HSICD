@@ -1,5 +1,10 @@
 """Repository-level entry point for sparse-correction v4 inference."""
 
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+
 from hsi_cd_inference.cli import main
 
 
