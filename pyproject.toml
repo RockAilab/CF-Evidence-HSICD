@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hsi-cd-inference"
+version = "0.1.0"
+description = "Inference-only retained-evidence sparse correction for hyperspectral change detection"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.23",
+]
+
+[project.scripts]
+hsi-cd-infer = "hsi_cd_inference.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
