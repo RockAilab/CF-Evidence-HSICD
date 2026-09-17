@@ -1,6 +1,29 @@
-# Label-Free Counterfactual Evidence Inference with Anchor-Induced Sparse Correction for Hyperspectral Change Detection
+# Counterfactual Evidence Inference for Label-Free Hyperspectral Change Detection
 
-This repository contains the inference code, benchmark data, and evidence required to reproduce the change maps for Farmland, Hermiston, and River.
+This repository provides the inference implementation and fixed evidence required to reproduce the reported binary change maps on Farmland, Hermiston, and River.
+
+## Reproduction Scope
+
+The repository supports fixed inference reproduction. It includes the benchmark data, pre-rank base responses, base counterfactual evidence, boundary-spectral evidence, correction scores, and deterministic inference code. Evidence-model and correction-score training code is not included.
+
+The bundled pre-rank base responses are processed by the label-free prevalence estimator described in the paper. The corresponding reference prevalence values are included in `evidence/manifest.json` and checked during inference. Ground-truth change maps are not used by the inference pipeline; they are used only for final evaluation.
+
+## Method Overview
+
+```text
+Base Counterfactual Evidence ----\
+                                  > Scene-Level Evidence Routing
+Boundary-Spectral Evidence -----/
+                    |
+                    v
+Correction-Score Ranking
+                    |
+                    v
+Selective Top-K Evidence Correction
+                    |
+                    v
+Rank-Based Change Inference
+```
 
 ## Installation
 
@@ -10,35 +33,41 @@ cd CF-Evidence-HSICD
 python -m pip install -r requirements.txt
 ```
 
-## Run Inference
-
-The datasets and inference evidence are included in `data/` and `evidence/`. Run all three scenes with:
+## Run All Scenes
 
 ```bash
 python run_all.py
 ```
 
-Results are written to:
+Results are written to `outputs/farmland/`, `outputs/hermiston/`, and `outputs/river/`.
 
-```text
-outputs/farmland/
-outputs/hermiston/
-outputs/river/
-```
-
-Each directory contains the binary change map (`prediction.npy`), fused score, fusion map, correction mask, and inference metadata.
-
-To run a single scene through the command-line interface:
+## Run One Scene
 
 ```bash
 python infer.py \
   --base-evidence evidence/river/base.npy \
   --boundary-evidence evidence/river/boundary.npy \
-  --correction-probability evidence/river/correction_probability.npy \
+  --correction-score evidence/river/correction_score.npy \
   --correction-count 1615 \
-  --prior 0.09206509952232868 \
+  --estimated-prevalence 0.09206509952232868 \
   --output-dir outputs/river
 ```
+
+The inputs correspond to the paper notation:
+
+- `base-evidence`: base counterfactual evidence, `Eb`
+- `boundary-evidence`: boundary-spectral evidence, `Es`
+- `correction-score`: correction score, `p`
+- `correction-count`: correction support size, `Kc`
+- `estimated-prevalence`: label-free change prevalence, `pi_hat`
+
+## Outputs
+
+- `prediction.npy`: final binary change map, `Y_hat`
+- `corrected_evidence.npy`: corrected evidence, `S`
+- `alpha.npy`: evidence-reliance coefficient
+- `correction_mask.npy`: selected correction support, `M_hat`
+- `metadata.json`: scene-level inference metadata
 
 ## Test
 

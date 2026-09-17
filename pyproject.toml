@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hsi-cd-inference"
-version = "0.1.0"
-description = "Inference-only retained-evidence sparse correction for hyperspectral change detection"
+version = "0.2.0"
+description = "Counterfactual evidence inference for label-free hyperspectral change detection"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
   "numpy>=1.23",
+  "scikit-image>=0.21",
 ]
 
 [project.scripts]

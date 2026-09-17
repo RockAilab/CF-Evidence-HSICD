@@ -13,30 +13,35 @@ class PipelineTests(unittest.TestCase):
         np.testing.assert_allclose(ranked, expected)
 
     def test_topk_mask_has_exact_count(self) -> None:
-        probability = np.arange(12, dtype=np.float32).reshape(3, 4) / 11.0
-        mask = topk_mask(probability, 3)
+        score = np.arange(12, dtype=np.float32).reshape(3, 4) / 11.0
+        mask = topk_mask(score, 3)
         self.assertEqual(int(mask.sum()), 3)
         self.assertTrue(np.all(mask.reshape(-1)[-3:] == 1))
 
-    def test_probability_inference_uses_protocol_endpoints(self) -> None:
+    def test_score_inference_uses_route_endpoints(self) -> None:
         base = np.arange(20, dtype=np.float32).reshape(4, 5)
         boundary = np.flip(base, axis=1).copy()
-        probability = np.linspace(0.0, 1.0, 20, dtype=np.float32).reshape(4, 5)
-        for prior, route_alpha, correction_alpha in ((0.30, 1.0, 0.95), (0.10, 0.0, 0.20)):
-            with self.subTest(prior=prior):
+        score = np.linspace(0.0, 1.0, 20, dtype=np.float32).reshape(4, 5)
+        cases = (
+            (0.30, "base_evidence", 1.0, 0.95),
+            (0.10, "boundary_spectral", 0.0, 0.20),
+        )
+        for estimated_prevalence, route, alpha_route, alpha_corr in cases:
+            with self.subTest(estimated_prevalence=estimated_prevalence):
                 result = run_inference(
                     base,
                     boundary,
-                    prior,
-                    correction_probability=probability,
+                    estimated_prevalence,
+                    correction_score=score,
                     correction_count=4,
                 )
                 self.assertEqual(int(result.correction_mask.sum()), 4)
-                self.assertEqual(result.route_alpha, route_alpha)
-                self.assertEqual(result.correction_alpha, correction_alpha)
+                self.assertEqual(result.route, route)
+                self.assertEqual(result.alpha_route, alpha_route)
+                self.assertEqual(result.alpha_corr, alpha_corr)
                 np.testing.assert_allclose(
                     np.sort(np.unique(result.alpha)),
-                    np.sort(np.asarray([route_alpha, correction_alpha], dtype=np.float32)),
+                    np.sort(np.asarray([alpha_route, alpha_corr], dtype=np.float32)),
                 )
                 self.assertEqual(result.prediction.dtype, np.uint8)
 

@@ -3,28 +3,31 @@
     {
       "name": "Farmland",
       "data_file": "data/Farmland.mat",
+      "base_response": "base_response.npy",
       "base_evidence": "base.npy",
       "boundary_evidence": "boundary.npy",
-      "correction_probability": "correction_probability.npy",
-      "prior": 0.2894936507936508,
+      "correction_score": "correction_score.npy",
+      "estimated_prevalence": 0.2894936507936508,
       "correction_count": 37052
     },
     {
       "name": "Hermiston",
       "data_file": "data/Hermiston.mat",
+      "base_response": "base_response.npy",
       "base_evidence": "base.npy",
       "boundary_evidence": "boundary.npy",
-      "correction_probability": "correction_probability.npy",
-      "prior": 0.22379607228296863,
+      "correction_score": "correction_score.npy",
+      "estimated_prevalence": 0.22379607228296863,
       "correction_count": 10405
     },
     {
       "name": "River",
       "data_file": "data/River.mat",
+      "base_response": "base_response.npy",
       "base_evidence": "base.npy",
       "boundary_evidence": "boundary.npy",
-      "correction_probability": "correction_probability.npy",
-      "prior": 0.09206509952232868,
+      "correction_score": "correction_score.npy",
+      "estimated_prevalence": 0.09206509952232868,
       "correction_count": 1615
     }
   ]

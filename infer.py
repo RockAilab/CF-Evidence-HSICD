@@ -1,4 +1,4 @@
-"""Repository-level entry point for sparse-correction v4 inference."""
+"""Repository entry point for counterfactual evidence inference."""
 
 from pathlib import Path
 import sys
