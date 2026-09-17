@@ -7,8 +7,8 @@ This repository provides the inference implementation and fixed evidence require
 The results reported in the manuscript and supplementary material correspond
 to:
 
-- Release tag: `paper-submission-v1`
-- Commit: `aac7f1fc9dfc4cfe00f5b2e7045cfb16b383b66d`
+- Release tag: `paper-submission-v2`
+- Commit: `14ad04c0a5995c1b150f19bde0e1a9442c22b92e`
 
 For exact reproduction of the submitted results, use this tagged version.
 
