@@ -2,6 +2,16 @@
 
 This repository provides the inference implementation and fixed evidence required to reproduce the reported binary change maps on Farmland, Hermiston, and River.
 
+## Paper Reproduction Version
+
+The results reported in the manuscript and supplementary material correspond
+to:
+
+- Release tag: `paper-submission-v1`
+- Commit: `aac7f1fc9dfc4cfe00f5b2e7045cfb16b383b66d`
+
+For exact reproduction of the submitted results, use this tagged version.
+
 ## Reproduction Scope
 
 The repository supports fixed inference reproduction. It includes the benchmark data, pre-rank base responses, base counterfactual evidence, boundary-spectral evidence, correction scores, and deterministic inference code. Evidence-model and correction-score training code is not included.

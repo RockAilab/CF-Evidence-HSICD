@@ -1,5 +1,10 @@
 # Supplementary Reproducibility Audit
 
+## Release Version
+
+- Paper release tag: `paper-submission-v1`
+- Commit: `aac7f1fc9dfc4cfe00f5b2e7045cfb16b383b66d`
+
 ## Public Release Scope
 
 This repository releases benchmark data, fixed evidence fields, correction
