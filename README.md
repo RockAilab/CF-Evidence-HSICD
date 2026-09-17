@@ -74,3 +74,18 @@ The inputs correspond to the paper notation:
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
+
+## Supplementary Reproducibility Audit
+
+The public audit regenerates the fixed-inference consistency tables and
+sensitivity plots from the bundled evidence and read-only reference outputs.
+It does not train a model, tune parameters, or modify the reported outputs.
+
+```bash
+python -m pip install -r requirements-supplementary.txt
+python scripts/generate_supplementary.py
+```
+
+Generated audit files are written to `supplementary_outputs/`. The detailed
+release-scope and cross-source record is provided in
+`SUPPLEMENTARY_AUDIT.md`.

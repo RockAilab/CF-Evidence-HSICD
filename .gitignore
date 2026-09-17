@@ -11,6 +11,7 @@ build/
 # Keep generated outputs and model artifacts out of Git.
 results/
 outputs/
+supplementary_outputs/
 artifacts/
 checkpoints/
 *.npz
