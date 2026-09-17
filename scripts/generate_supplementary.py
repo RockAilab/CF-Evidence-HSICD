@@ -45,6 +45,38 @@ EXPECTED_SCORE_HASHES = {
     "Hermiston": "ac72ef1311a0fb85ad42ffbd0744a226f854a7f74f3615cc06b8011e7adb4276",
     "River": "f6e09e58edac5a252f3704bd077fb5bbe1ce33b5178ce0306f70ce652d23453c",
 }
+EXPECTED_CORRECTION_AUDIT = {
+    "Farmland": {
+        "Support (%)": 58.81269841269842,
+        "Decision change (%)": 0.1142857142857143,
+        "In-support flip rate (%)": 0.11875202418223038,
+        "Repair": 39,
+        "Damage": 33,
+        "Repair/Damage ratio": 1.1818181818181819,
+        "Repair median |margin|": 0.0005109310150146484,
+        "Damage median |margin|": 0.0003795623779296875,
+    },
+    "Hermiston": {
+        "Support (%)": 14.063281387270738,
+        "Decision change (%)": 0.12164299133631583,
+        "In-support flip rate (%)": 0.47092743873137916,
+        "Repair": 47,
+        "Damage": 43,
+        "Repair/Damage ratio": 1.0930232558139534,
+        "Repair median |margin|": 0.0006172060966491699,
+        "Damage median |margin|": 0.0006803274154663086,
+    },
+    "River": {
+        "Support (%)": 1.447353091420736,
+        "Decision change (%)": 0.005377163187940816,
+        "In-support flip rate (%)": 0.18575851393188855,
+        "Repair": 6,
+        "Damage": 0,
+        "Repair/Damage ratio": np.inf,
+        "Repair median |margin|": 0.0014877021312713623,
+        "Damage median |margin|": np.nan,
+    },
+}
 AUDIT_FIELDS = [
     "Dataset", "Data source", "Code entry point", "GT usage", "Parameter source",
     "Output file", "Check", "Expected value", "Observed value", "Mismatch", "Status",
@@ -260,6 +292,29 @@ def load_ground_truth(scenes: list[dict[str, object]]) -> None:
         scene["ground_truth"] = ground_truth
 
 
+def verify_correction_audit(rows: list[dict[str, object]]) -> None:
+    """Require exact counts and deterministic floating-point Table S4 values."""
+
+    for row in rows:
+        name = str(row["Dataset"])
+        expected = EXPECTED_CORRECTION_AUDIT[name]
+        for field, expected_value in expected.items():
+            observed = row[field]
+            if isinstance(expected_value, int):
+                matches = int(observed) == expected_value
+            elif np.isnan(expected_value):
+                matches = np.isnan(float(observed))
+            elif np.isinf(expected_value):
+                matches = np.isinf(float(observed)) and float(observed) > 0
+            else:
+                matches = np.isclose(float(observed), expected_value, rtol=0.0, atol=1e-12)
+            if not matches:
+                raise RuntimeError(
+                    f"{name}: Table S4 field {field!r} mismatch: "
+                    f"expected {expected_value!r}, observed {observed!r}"
+                )
+
+
 def posthoc_tables(
     scenes: list[dict[str, object]],
 ) -> tuple[list[dict[str, object]], list[dict[str, object]], list[dict[str, object]]]:
@@ -269,22 +324,38 @@ def posthoc_tables(
     for scene in scenes:
         result = scene["result"]
         gt = scene["ground_truth"].astype(bool)
-        route_pred = result.route_prediction.astype(bool) if hasattr(result, "route_prediction") else None
-        if route_pred is None:
-            routed = percentile_rank(scene["base"] if result.route == "base_evidence" else scene["boundary"])
-            route_pred, _ = rank_based_change_decision(routed, result.estimated_prevalence)
-            route_pred = route_pred.astype(bool)
-        corrected = result.prediction.astype(bool)
-        support = result.correction_mask.astype(bool)
+        route_pred = scene["reference_route"].astype(bool)
+        corrected = scene["reference_prediction"].astype(bool)
+        support = scene["reference_mask"].astype(bool)
+        official_prediction, final_threshold = rank_based_change_decision(
+            scene["reference_corrected"], result.estimated_prevalence
+        )
+        if np.any(official_prediction.astype(bool) != corrected):
+            raise RuntimeError(f"{scene['name']}: reference corrected evidence/prediction mismatch")
         changed = route_pred != corrected
-        repair = changed & (corrected == gt)
-        damage = changed & (route_pred == gt)
+        repair = changed & (corrected == gt) & (route_pred != gt)
+        damage = changed & (route_pred == gt) & (corrected != gt)
+        final_margin = np.abs(scene["reference_corrected"] - final_threshold)
+        repair_count = int(repair.sum())
+        damage_count = int(damage.sum())
         correction_rows.append({
             "Dataset": scene["name"],
             "Support (%)": 100.0 * support.mean(),
             "Decision change (%)": 100.0 * changed.mean(),
-            "Repair": int(repair.sum()),
-            "Damage": int(damage.sum()),
+            "In-support flip rate (%)": (
+                100.0 * np.logical_and(changed, support).sum() / max(int(support.sum()), 1)
+            ),
+            "Repair": repair_count,
+            "Damage": damage_count,
+            "Repair/Damage ratio": (
+                repair_count / damage_count if damage_count else (np.inf if repair_count else np.nan)
+            ),
+            "Repair median |margin|": (
+                float(np.median(final_margin[repair])) if repair_count else np.nan
+            ),
+            "Damage median |margin|": (
+                float(np.median(final_margin[damage])) if damage_count else np.nan
+            ),
         })
 
         prevalence = float(scene["entry"]["estimated_prevalence"])
@@ -309,6 +380,7 @@ def posthoc_tables(
                 "F1": values["F1"], "Kappa": values["Kappa"],
                 "Decision change (%)": 100.0 * np.mean(perturbed["prediction"] != route_pred),
             })
+    verify_correction_audit(correction_rows)
     return correction_rows, routing_rows, amplitude_rows
 
 
@@ -420,6 +492,7 @@ def main() -> None:
         "scope": "Fixed inference reproduction; no training or parameter selection",
         "ground_truth_role": "Post-hoc metrics and visualization only",
         "farmland_historical_initialization": "Fixed-input reproduction only",
+        "table_s4_audit": "PASS",
         "prediction_mismatch": {
             row["Dataset"]: row["Corrected prediction mismatch"] for row in consistency
         },
@@ -427,6 +500,17 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "audit_summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
+    print("Table S4 audit = PASS")
+    for row in correction:
+        print(
+            f"{row['Dataset']}: support={row['Support (%)']:.6f}%, "
+            f"decision_change={row['Decision change (%)']:.6f}%, "
+            f"in_support_flip_rate={row['In-support flip rate (%)']:.6f}%, "
+            f"repair={row['Repair']}, damage={row['Damage']}, "
+            f"R/D={row['Repair/Damage ratio']}, "
+            f"repair_margin={row['Repair median |margin|']}, "
+            f"damage_margin={row['Damage median |margin|']}"
+        )
 
 
 if __name__ == "__main__":

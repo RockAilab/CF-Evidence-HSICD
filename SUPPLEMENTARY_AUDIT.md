@@ -69,8 +69,15 @@ The audit covers Farmland, Hermiston, and River for:
 | Correction mask | Reference mask reproduced exactly | No |
 | Corrected evidence | Reference field reproduced within `1e-7` | No |
 | Final prediction | Reference map reproduced exactly | No |
+| Decision-level correction audit | Table S4 fully regenerated | GT post-hoc only |
 | Farmland historical initialization | Fixed-input reproduction only | No |
 
 Any mismatch terminates the script before post-hoc evaluation products are
 generated. The script never performs parameter selection or modifies bundled
 evidence, correction scores, or reference outputs.
+
+After fixed predictions are verified, the script loads GT for post-hoc
+classification of decision changes. It regenerates Table S4 fields for support,
+decision change, in-support flip rate, repair, damage, repair/damage ratio,
+repair margin, and damage margin. Every field is checked against the fixed
+reported result, and any mismatch terminates the audit.

@@ -90,6 +90,9 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 The public audit regenerates the fixed-inference consistency tables and
 sensitivity plots from the bundled evidence and read-only reference outputs.
 It does not train a model, tune parameters, or modify the reported outputs.
+The audit also regenerates the complete decision-level correction table,
+including support, decision-change, repair/damage, and decision-margin
+statistics.
 
 ```bash
 python -m pip install -r requirements-supplementary.txt
